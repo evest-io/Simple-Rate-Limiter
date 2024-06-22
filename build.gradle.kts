@@ -1,5 +1,10 @@
 plugins {
-    kotlin("jvm") version "1.9.23"
+    val kotlinVersion = "2.0.0"
+    id("org.jetbrains.dokka") version "1.9.20"
+    kotlin("jvm") version kotlinVersion apply false
+
+    `maven-publish`
+    application
 }
 
 group = "io.evest"
@@ -9,13 +14,35 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation(kotlin("test"))
+buildscript {
+    dependencies {
+        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.9.10")
+    }
 }
 
-tasks.test {
-    useJUnitPlatform()
+configure<PublishingExtension> {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/evest-io/SimpleRateLimit")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("gpr") {
+            groupId = "io.evest"
+            version = System.getenv("TAG") ?: "0.0.1"
+            from(components["java"])
+        }
+    }
 }
-kotlin {
-    jvmToolchain(21)
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    withSourcesJar()
 }
+
