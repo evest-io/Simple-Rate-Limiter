@@ -1,3 +1,3 @@
-package io.evest.simpleratelimit
+package io.evest.simpleratelimiter
 
-data class WaitBucket(val lastCall: Long, val waitUntil: Long)
+data class ThrottleBucket(val lastCall: Long, val waitUntil: Long)

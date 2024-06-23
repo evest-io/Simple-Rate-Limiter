@@ -1,14 +1,13 @@
-package io.evest.simpleratelimit
+package io.evest.simpleratelimiter
 
+import BucketHandler
+import Throttler
 import java.time.Duration
-import java.util.concurrent.ConcurrentHashMap
 
 private const val defaultMinWait = 10L
 private const val defaultMaxCache = 60L
 
 object RateLimiter {
-    private val cacheMap = ConcurrentHashMap<String, WaitBucket>()
-
     private var minimumWaitMillis: Long = Duration.ofSeconds(defaultMinWait).toMillis()
     private var maxCacheTime: Long = Duration.ofSeconds(defaultMaxCache).toMillis()
 
@@ -21,30 +20,18 @@ object RateLimiter {
         this.maxCacheTime = maxCacheTime.toMillis()
     }
 
-    private fun synchronizedWaitValue(key: String?, millis: Long): Long = synchronized(cacheMap) {
-        key ?: return@synchronized millis
-
-        val currentTime = System.currentTimeMillis()
-        // Clear old cache entries
-        cacheMap.entries.removeIf { currentTime - it.value.lastCall > maxCacheTime }
-
-        val bucket = cacheMap[key]
-        val lastCall = bucket?.lastCall ?: currentTime
-        val diffMillis = currentTime - lastCall
-
-        when {
-            diffMillis < minimumWaitMillis -> {
-                val newWait = (bucket?.waitUntil?.times(1.5) ?: millis.toDouble()).toLong()
-                cacheMap[key] = WaitBucket(currentTime, newWait)
-                newWait
-            }
-
-            else -> millis
-        }
-    }
 
     fun <T> T.throttle(key: String? = null, millis: Long = 1_500): T = also {
-        val waitUntil = synchronizedWaitValue(key, millis)
+        val waitUntil = Throttler.synchronizedWaitValue(key, millis, minimumWaitMillis, maxCacheTime)
         Thread.sleep(waitUntil)
+    }
+
+    fun <T> T.bucket(
+        key: String,
+        maxCalls: Int = 1,
+        per: Duration = Duration.ofSeconds(defaultMinWait),
+    ) = also {
+        val shouldWait = BucketHandler.count(key, maxCalls, per)
+        if (shouldWait) Thread.sleep(minimumWaitMillis)
     }
 }
