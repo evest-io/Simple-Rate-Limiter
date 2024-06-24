@@ -41,14 +41,18 @@ object RateLimiter {
     }
 
     /**
-     * Try to bucket the call, if the rate limit is exceeded, return an [Option] with the exception.
+     * Bucket the call, if the rate limit is exceeded, call the [error] function.
      */
     fun <T> T.tryBucket(
         key: String,
         maxCalls: Int = 1,
         per: Duration = Duration.ofSeconds(defaultMinWait),
-    ): Option<T> = when (BucketHandler.count(key, maxCalls, per)) {
-        true -> Option(this, RateLimitException("Rate limit exceeded for key: $key"))
-        false -> Option(this)
+        error: (exception: RateLimitException?) -> Unit = {},
+    ): T = also {
+        val exhausted = when (BucketHandler.count(key, maxCalls, per)) {
+            true -> RateLimitException("Rate limit exceeded for key: $key")
+            false -> null
+        }
+        error(exhausted)
     }
 }
