@@ -26,6 +26,10 @@ object RateLimiter {
         Thread.sleep(waitUntil)
     }
 
+
+    /**
+     * Bucket the call, if the rate limit is exceeded, throw a [RateLimitException].
+     */
     fun <T> T.bucket(
         key: String,
         maxCalls: Int = 1,
@@ -36,6 +40,9 @@ object RateLimiter {
             throw RateLimitException("Rate limit exceeded for key: $key")
     }
 
+    /**
+     * Try to bucket the call, if the rate limit is exceeded, return an [Option] with the exception.
+     */
     fun <T> T.tryBucket(
         key: String,
         maxCalls: Int = 1,
