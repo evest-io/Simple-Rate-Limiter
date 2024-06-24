@@ -14,11 +14,9 @@ object BucketHandler {
         val timeAlive = per.toMillis()
         val currentBucket = bucketMap[key] ?: Bucket(0, currentTime)
 
+        currentBucket.calls += 1
         // within the time frame
-        if (currentBucket.firstCall + timeAlive < currentTime) {
-            // increment the number of calls
-            currentBucket.calls += 1
-        } else {
+        if (currentBucket.firstCall + timeAlive <= currentTime) {
             // reset the bucket
             bucketMap.remove(key)
         }
