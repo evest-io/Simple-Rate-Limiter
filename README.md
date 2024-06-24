@@ -22,7 +22,7 @@ implementation("io.evest:simple-rate-limiter:0.0.3")
 ```kotlin
   Any()
     .tryBucket("1", 2, Duration.ofSeconds(1))
-    .let { (some, error) ->
+    .{ e ->
         ...
     }
 ```
