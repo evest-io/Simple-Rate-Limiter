@@ -1,7 +1,6 @@
 package io.evest.simpleratelimiter.test
 
 import io.evest.simpleratelimiter.RateLimitException
-import io.evest.simpleratelimiter.RateLimiter.bucket
 import io.evest.simpleratelimiter.RateLimiter.tryBucket
 import java.time.Duration
 import kotlin.test.Test
@@ -15,8 +14,9 @@ class TestRateLimiter {
         for (i in 0..11) {
             val startTime = System.currentTimeMillis()
             try {
-                any.bucket("1", 2, Duration.ofSeconds(1))
-                    
+                any.tryBucket("1", 2, Duration.ofSeconds(1)) {
+                    println("Rate limit exceeded for iteration $i")
+                }
             } catch (e: RateLimitException) {
                 println("Rate limit exceeded for iteration $i")
             }

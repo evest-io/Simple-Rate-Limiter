@@ -49,10 +49,7 @@ object RateLimiter {
         per: Duration = Duration.ofSeconds(defaultMinWait),
         error: (exception: RateLimitException?) -> Unit = {},
     ): T = also {
-        val exhausted = when (BucketHandler.count(key, maxCalls, per)) {
-            true -> RateLimitException("Rate limit exceeded for key: $key")
-            false -> null
-        }
-        error(exhausted)
+        if (BucketHandler.count(key, maxCalls, per))
+            error(RateLimitException("Rate limit exceeded for key: $key"))
     }
 }
