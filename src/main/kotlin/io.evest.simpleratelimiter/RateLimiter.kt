@@ -35,4 +35,13 @@ object RateLimiter {
         if (exhausted)
             throw RateLimitException("Rate limit exceeded for key: $key")
     }
+
+    fun <T> T.tryBucket(
+        key: String,
+        maxCalls: Int = 1,
+        per: Duration = Duration.ofSeconds(defaultMinWait),
+    ): Option<T> = when (BucketHandler.count(key, maxCalls, per)) {
+        true -> Option(this, RateLimitException("Rate limit exceeded for key: $key"))
+        false -> Option(this)
+    }
 }
