@@ -2,6 +2,7 @@ package io.evest.simpleratelimiter
 
 import BucketHandler
 import Throttler
+import com.sun.org.slf4j.internal.LoggerFactory
 import java.time.Duration
 
 private const val defaultMinWait = 10L
@@ -10,6 +11,7 @@ private const val defaultMaxCache = 60L
 object RateLimiter {
     private var minimumWaitMillis: Long = Duration.ofSeconds(defaultMinWait).toMillis()
     private var maxCacheTime: Long = Duration.ofSeconds(defaultMaxCache).toMillis()
+    private val logger = LoggerFactory.getLogger(RateLimiter::class.java)
 
     /** Set the minimum wait time between calls and the maximum time a value is cached. */
     fun settings(
@@ -49,6 +51,7 @@ object RateLimiter {
         per: Duration = Duration.ofSeconds(defaultMinWait),
         error: (exception: RateLimitException?) -> Unit = {},
     ): T = also {
+        logger.debug("Bucketing call for key: $key, maxCalls: $maxCalls, per: $per")
         if (BucketHandler.count(key, maxCalls, per))
             error(RateLimitException("Rate limit exceeded for key: $key"))
     }
