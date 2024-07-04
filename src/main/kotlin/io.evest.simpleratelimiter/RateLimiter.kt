@@ -2,7 +2,7 @@ package io.evest.simpleratelimiter
 
 import BucketHandler
 import Throttler
-import com.sun.org.slf4j.internal.LoggerFactory
+import org.slf4j.LoggerFactory
 import java.time.Duration
 
 private const val defaultMinWait = 10L
